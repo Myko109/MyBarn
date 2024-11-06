@@ -16,26 +16,37 @@ import { supabase } from "../utils/SupaClient";
 export default function AddSupplyItem({ isOpen, onOpenChange }) {
   const [formData, setFormData] = useState({
     supplier_name: "",
-    phone_number: "",
+    phone_number: "", // initially a string, will be parsed to number if necessary
     address: "",
     email: "",
-    supplier_logo: "",
   });
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: name === "phone_number" ? value.replace(/\D/g, "") : value, // Remove non-numeric characters for phone_number
+    }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Parse phone_number to an integer if it's required to be numeric
+    const parsedFormData = {
+      ...formData,
+      phone_number: parseInt(formData.phone_number, 10),
+    };
+
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("supplier")
-        .insert(formData)
+        .insert([parsedFormData]) // Insert data as an array
         .select();
+
+      if (error) {
+        throw error;
+      }
 
       if (data) {
         Swal.fire({
@@ -49,10 +60,8 @@ export default function AddSupplyItem({ isOpen, onOpenChange }) {
         });
       }
     } catch (error) {
-      console.log(error);
+      console.error("Error adding supplier:", error.message);
     }
-
-    formData;
   };
 
   return (
@@ -65,7 +74,7 @@ export default function AddSupplyItem({ isOpen, onOpenChange }) {
             </ModalHeader>
             <form onSubmit={handleSubmit}>
               <ModalBody>
-                <label onSubmit={handleSubmit}>
+                <label>
                   Supplier Company
                   <Input
                     type="text"

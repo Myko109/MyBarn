@@ -1,11 +1,10 @@
 import { Divider, Spinner } from "@nextui-org/react";
 import { data } from "autoprefixer";
-import React, { useEffect } from "react";
-import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Layout from "../components/Layout";
 import useFormatRupiah from "../hooks/useFormatRupiah";
 import { supabase } from "../utils/SupaClient";
+import { useState, useEffect } from "react";
 
 const DetailSupply = () => {
   const [getSupplyId, setGetSupplyId] = useState({});

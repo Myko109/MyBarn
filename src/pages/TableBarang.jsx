@@ -4,6 +4,9 @@ import Layout from "../components/Layout";
 import TableData from "../components/TableData";
 import { Button, useDisclosure } from "@nextui-org/react";
 import ModalAddBarang from "../components/ModalAddBarang";
+import { useAuth } from "../auth/AuthProvider";
+import { Link } from "react-router-dom";
+import Search from "../components/Search";
 
 const TableBarang = () => {
   const [allBarang, setAllBarang] = useState([]);
@@ -22,22 +25,51 @@ const TableBarang = () => {
     }
   };
 
+  const { user, role } = useAuth();
+
   useEffect(() => {
     getAllBarang();
     document.getElementById("title").innerHTML = "Item Table";
   }, []);
 
+  const [search, setSearch] = useState("");
+
+  const handleSearch = (e) => {
+    setSearch(e.target.value);
+  };
+
   return (
     <Layout>
-      <section id="table-barang" className="p-8">
+      <section id="table-barang" className="p-8 dark:bg-slate-900">
         <div className="flex justify-between mb-5">
-          <h2 className="text-4xl font-bold">Item Table</h2>
-          <Button color="primary" onPress={onOpen}>
-            + Add item
-          </Button>
-          <ModalAddBarang isOpen={isOpen} onOpenChange={onOpenChange} />
+          <h2 className="text-4xl font-bold">{allBarang.length} Items</h2>
+          {user.id && role === "admin" ? (
+            <>
+              <Button color="primary" onPress={onOpen}>
+                + Add item
+              </Button>
+
+              <ModalAddBarang isOpen={isOpen} onOpenChange={onOpenChange} />
+            </>
+          ) : (
+            <Link to={"/login"}>
+              <Button color="primary" onPress={onOpen}>
+                Login As Admin
+              </Button>
+            </Link>
+          )}
         </div>
-        <TableData allBarang={allBarang} />
+
+        <div className="my-3">
+          <Search handleSearch={Search} />
+        </div>
+
+        <TableData
+          allBarang={allBarang}
+          user={user}
+          role={role}
+          search={search}
+        />
       </section>
     </Layout>
   );

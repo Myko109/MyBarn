@@ -21,6 +21,8 @@ const EditBarang = () => {
     image: "",
   });
 
+  const [imagePreview, setImagePreview] = useState([]);
+
   //bikin loading
   const [loading, setLoading] = useState(true);
 
@@ -28,7 +30,7 @@ const EditBarang = () => {
 
   const handleChange = (e) => {
     setFormEdit({
-      ...formEdit,
+      ...setImagePreview,
       [e.target.name]: e.target.value,
     });
   };
@@ -55,31 +57,51 @@ const EditBarang = () => {
   const updateItemById = async (e) => {
     e.preventDefault();
     setLoadingBtn(true);
+
     try {
-      const { data } = await supabase
-        .from("product")
-        .update({
-          name: formEdit.name,
-          price: formEdit.price,
-          type: formEdit.type,
-          stock: formEdit.stock,
-          description: formEdit.description,
-          image: formEdit.image,
-        })
-        .eq("id", id)
-        .select();
+      if (imagePreview.length === 0) {
+        const { data: updateData } = await supabase
+          .from("product")
+          .update(formEdit)
+          .select()
+          .eq("id", id);
 
-      if (data) {
-        Swal.fire({
-          icon: "success",
-          title: "Your items has been stored!",
-          showConfirmButton: false,
-          timer: 2000,
-        }).then(() => navigate("/table-barang"));
+        if (updateData) {
+          alert("Updated");
+          navigate("/table-barang");
+        }
+      } else {
+        const removeUrlImage = formEdit.image.replace(
+          "https://gypbsaisblmgicbjarts.supabase.co/storage/v1/object/public/imageBuckets/items/",
+          ""
+        );
+
+        const { data: deleteImage } = await supabase.storage
+          .from("imageBuckets")
+          .remove(`items/${formEdit.image}`);
+
+        if (deleteImage) {
+          const { data: uploadImage } = await supabase.storage
+            .from("imageBuckets")
+            .remove(`items/${imagePreview.name}`, imagePreview, {
+              cacheControl: 3000,
+              upsert: true,
+            });
+
+          if (uploadImage) {
+            const { data } = await supabase.from("product").update({
+              formEdit,
+              image: `https://gypbsaisblmgicbjarts.supabase.co/storage/v1/object/public/imageBuckets/items/${imagePreview.name}`,
+            });
+
+            if (data) {
+            }
+          }
+        }
       }
-
-      console.log(data);
     } catch (error) {
+      console.log(error);
+    } finally {
       setLoadingBtn(false);
     }
   };
@@ -88,6 +110,12 @@ const EditBarang = () => {
     getBarangById();
     document.getElementById("title").innerHTML = "Edit Item Page";
   }, []);
+
+  const handleImage = (e) => {
+    setFormEdit({
+      ...setImagePreview(e.target.files(0)),
+    });
+  };
 
   // loading juga
   return (
@@ -154,13 +182,13 @@ const EditBarang = () => {
             <label>
               Image Item
               <input
-                type="text"
+                type="file"
                 name="image"
                 className="form-input rounded-lg w-full mt-1"
-                value={formEdit.image}
-                onChange={handleChange}
+                onChange={handleImage}
               />
             </label>
+            <img src={formEdit.image} alt={formEdit.name} className="size-4" />
 
             <div className="flex gap-4">
               <Button onClick={() => navigate("/table-barang")} color="default">

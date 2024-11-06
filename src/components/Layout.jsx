@@ -5,7 +5,7 @@ import Sidebar from "./Sidebar";
 
 const Layout = ({ children }) => {
   return (
-    <main className="flex w-full">
+    <main className="flex w-screen">
       <Sidebar />
       <div className="flex flex-col w-4/5">
         <Header />

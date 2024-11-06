@@ -55,7 +55,9 @@ const Dashboard = () => {
     <Layout>
       <section id="dashboard" className="p-10">
         <div className="bg-cyan-800 text-white rounded-lg h-40 p-5">
-          <h2 className="text-2xl font-semibold">Welcome, Peterson!</h2>
+          <h2 className="text-2xl font-semibold">
+            Welcome, {import.meta.env.VITE_USER}
+          </h2>
           <p className="text-md mt-2 italic">
             Effortless Inventory Management, Anytime, Anywhere.
           </p>
@@ -70,17 +72,17 @@ const Dashboard = () => {
             </>
           ) : (
             <>
-              <div className="p-4 bg-[#16423C] text-white h-36 rounded-lg">
+              <div className="p-4 bg-[#16423C] text-white h-36 rounded-lg items-center text-center">
                 <h2 className="text-xl font-semibold">Total Items :</h2>
                 <p className="text-4xl font-bold mt-2">{barang}</p>
               </div>
-              <div className="p-4 bg-[#295F98] text-white h-36 rounded-lg">
+              <div className="p-4 bg-[#295F98] text-white h-36 rounded-lg items-center text-center">
                 <h2 className="text-xl font-semibold">Foods :</h2>
                 <p className="text-4xl font-bold mt-2">
                   {jenisBarangCount.Food}
                 </p>
               </div>
-              <div className="p-4 bg-[#7A1CAC] text-white h-36 rounded-lg">
+              <div className="p-4 bg-[#7A1CAC] text-white h-36 rounded-lg items-center text-center">
                 <h2 className="text-xl font-semibold">Beverages:</h2>
                 <p className="text-4xl font-bold mt-2">
                   {jenisBarangCount.Drink}

@@ -36,22 +36,49 @@ export default function ModalAddBarang({ isOpen, onOpenChange }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const { data } = await supabase.from("product").insert(formData).select();
-
-      if (data) {
-        Swal.fire({
-          position: "top-end",
-          icon: "success",
-          title: "Your items has been stored!",
-          showConfirmButton: false,
-          timer: 2000,
-        }).then(() => {
-          window.location.reload();
+      const { data: uploadImage, error: uploadError } = await supabase.storage
+        .from("imageBuckets")
+        .upload(`items/${formData.image.name}`, formData.image, {
+          cacheControl: "3000",
+          upsert: true,
         });
+
+      if (uploadError) {
+        throw uploadError;
       }
-    } catch (error) {
-      console.log(error);
-    }
+
+      if (uploadImage) {
+        const imageUrl = supabase.storage
+          .from("imageBuckets")
+          .getPublicUrl(`items/${formData.image.name}`).data.publicUrl;
+
+        const updateFormData = {
+          ...formData,
+          image: imageUrl,
+        };
+
+        const { data, error } = await supabase
+          .from("product")
+          .insert(updateFormData)
+          .select();
+
+        if (error) {
+          throw error;
+        }
+
+        if (data) {
+          Swal.fire({
+            position: "top-end",
+            icon: "success",
+            title: "Your items has been stored!",
+            showConfirmButton: false,
+            timer: 2000,
+          }).then(() => {
+            window.location.reload();
+          });
+        }
+      }
+    } catch (error) {}
 
     formData;
   };
@@ -66,6 +93,13 @@ export default function ModalAddBarang({ isOpen, onOpenChange }) {
       value: "Drinks",
     },
   ];
+
+  const handleImage = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.files[0],
+    });
+  };
 
   return (
     <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="2xl">
@@ -139,7 +173,12 @@ export default function ModalAddBarang({ isOpen, onOpenChange }) {
                 </label>
                 <label>
                   Image
-                  <Input type="text" radius="sm" />
+                  <input
+                    type="file"
+                    name="image"
+                    onChange={handleImage}
+                    className="w-full border border-black p-2 rounded-md"
+                  ></input>
                 </label>
               </ModalBody>
               <ModalFooter>
